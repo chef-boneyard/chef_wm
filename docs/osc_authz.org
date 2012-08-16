@@ -1,0 +1,141 @@
+* Authz rules for OSC Chef
+This describes the authz rules currently implemented in the ruby
+Chef server along with their mapping to webmachine endpoints and verbs
+for the erlang OSC server
+
+** app/controllers/application.rb
+There are 3 authz related rules in the application which are used as `before`
+hooks in the endpoint code.  If non of these are specified we only
+required an authenticated user.
+
+*** is_admin
+user.admin  == true
+
+*** is_admin_or_validator
+user.admin == true || user.name == Chef:Config[:validation_client_name]
+
+*** admin_or_requesting_node
+user.admin || user.name == params[:id] # for Clients, only allow a client to show/destroy
+                                       # its own entry
+
+** Per endpoint rules - ruby
+
+|               | *admin*                 | *admin_or_validator* | *admin_or_req_node*        |
+| Clients       | index, update           | create               | show, destroy              |
+| Cookbooks (1) | create, update, destroy |                      |                            |
+| Data Bags (2) | create, destroy         |                      |                            |
+| Data Item     | create, update, destroy |                      |                            |
+| Environments  | create, update, destroy |                      |                            |
+| Nodes     (3) |                         |                      | update, destroy, cookbooks |
+| Roles         | create, update, destroy |                      |                            |
+| Sandboxes     |                         |                      |                            |
+| Search        | reindex                 |                      |                            |
+| Users         | create, destroy, update |                      |                            |
+
+   (1) create and update are done by the same endpoint (chef_wm_cookbook_version PUT)
+   (2) no update on databag
+   (3) cookbooks endpoint is chef 0.9 only
+
+** Per endpoint rules - erchef
+
+   If an endpoint is not mentioned then there are no access
+*** Clients
+
+chef_wm_clients
+    GET: admin  # index
+    POST: admin_or_validator # create
+
+chef_wm_named_client
+    GET: admin_or_requestor_node # show
+    PUT: admin  # update
+    DELETE: admin_or_requestor_node  #  delete
+
+*** Cookbooks
+
+chef_wm_cookbooks
+    GET:
+
+chef_wm_cookbook_version
+    GET:
+    PUT: admin
+    DELETE: admin
+
+*** Data bags
+
+chef_wm_data
+    GET:
+    POST: admin # create data bag
+
+chef_wm_named_data
+    GET:
+    POST: admin  # create data bag item
+    DELETE: admin
+
+chef_wm_named_data_item
+    GET:
+    PUT: admin # update dag bag item
+    DELETE: admin
+
+*** Environments
+
+chef_wm_environments
+    GET:
+    POST: admin (1)
+
+chef_wm_named_environment
+    GET:
+    PUT: admin (2)
+    DELETE: admin (3)
+
+    (1) currently no special protection on creation of _default" environment
+        in ruby code, but we have some in erchef
+    (2) update not allowed on "_default" environment
+    (3) update not allowed on "_default" environment
+
+*** Nodes
+
+TODO: Should there be access control on create/POST ?
+maybe admin_or_requesting_node would be appropriate - this must
+be due to issues around initial node bootstrap ?
+
+
+chef_wm_nodes
+    GET:
+    GET:  # with environment name
+    POST: # ????
+
+chef_wm_named_node
+    GET:
+    PUT: admin_or_requesting_node
+    DELETE: admin_or_requesting_node
+
+*** Roles
+
+chef_wm_roles
+    GET:
+    POST: admin
+
+chef_wm_named_role
+    GET:
+    PUT: admin
+    DELETE: admin
+
+*** Search
+
+    TODO:  we still need an endpoint for reindex implemented
+
+chef_wm_search_reindex
+    POST: admin # reindex
+
+*** Users
+
+TODO: Check these are actually the resource names
+
+chef_wm_users
+    GET:
+    POST: admin
+
+chef_wm_named_user
+    GET:
+    PUT: admin
+    DELETE: admin
