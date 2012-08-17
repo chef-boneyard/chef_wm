@@ -23,14 +23,14 @@ user.admin || user.name == params[:id] # for Clients, only allow a client to sho
 |               | *admin*                 | *admin_or_validator* | *admin_or_req_node*        |
 | Clients       | index, update           | create               | show, destroy              |
 | Cookbooks (1) | create, update, destroy |                      |                            |
-| Data Bags (2) | create, destroy         |                      |                            |
 | Data Item     | create, update, destroy |                      |                            |
 | Environments  | create, update, destroy |                      |                            |
-| Nodes     (3) |                         |                      | update, destroy, cookbooks |
 | Roles         | create, update, destroy |                      |                            |
-| Sandboxes     |                         |                      |                            |
-| Search        | reindex                 |                      |                            |
 | Users         | create, destroy, update |                      |                            |
+| Data Bags (2) | create, destroy         |                      |                            |
+| Sandboxes     |                         |                      |                            |
+| Nodes     (3) |                         |                      | update, destroy, cookbooks |
+| Search        | reindex                 |                      |                            |
 
    (1) create and update are done by the same endpoint (chef_wm_cookbook_version PUT)
    (2) no update on databag
@@ -91,6 +91,8 @@ chef_wm_named_environment
         in ruby code, but we have some in erchef
     (2) update not allowed on "_default" environment
     (3) update not allowed on "_default" environment
+    Actually these are OK because we already do method not allowed for
+    PUT, DELETE on _defualt environment
 
 *** Nodes
 
@@ -109,6 +111,7 @@ chef_wm_named_node
     PUT: admin_or_requesting_node
     DELETE: admin_or_requesting_node
 
+Check admin of client and compare client name to name of node from URL.
 *** Roles
 
 chef_wm_roles
