@@ -13,11 +13,11 @@ user.admin  == true
 
 *** is_admin_or_validator
 user.admin == true || user.name == Chef:Config[:validation_client_name]
-
+Q: Why don't we check the validator attribute? Should we?
 *** admin_or_requesting_node
 user.admin || user.name == params[:id] # for Clients, only allow a client to show/destroy
                                        # its own entry
-
+So this user is really client_name I think.
 ** Per endpoint rules - ruby
 
 |               | *admin*                 | *admin_or_validator* | *admin_or_req_node*        |
