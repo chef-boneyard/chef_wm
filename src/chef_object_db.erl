@@ -23,7 +23,8 @@
 %% @doc Helper functions that tie together operations across chef_db and chef_index
 -module(chef_object_db).
 
--export([add_to_solr/4,
+-export([add_to_solr/2,
+         add_to_solr/4,
          delete/3,
          delete_from_solr/1]).
 
@@ -39,6 +40,19 @@ add_to_solr(cookbook_version, _Id, _OrgId, _Ejson) ->
     ok;
 add_to_solr(TypeName, Id, OrgId, Ejson) ->
     chef_index_queue:set(TypeName, Id, chef_otto:dbname(OrgId), Ejson).
+
+-spec add_to_solr(chef_type() | #chef_user{}, ejson_term()) -> ok.
+add_to_solr(#chef_cookbook_version{}, _) ->
+    ok;
+add_to_solr(#chef_data_bag{}, _) ->
+    ok;
+add_to_solr(#chef_user{}, _) ->
+    ok;
+add_to_solr(ObjectRec, Ejson) ->
+    {Id, OrgId} = get_id_and_org_id(ObjectRec),
+    TypeName = chef_object:type_name(ObjectRec),
+    EjsonToIndex = chef_object:ejson_for_indexing(ObjectRec, Ejson),
+    chef_index_queue:set(TypeName, Id, chef_otto:dbname(OrgId), EjsonToIndex).
 
 %% @doc Helper function to easily delete an object from Solr, instead
 %% of calling chef_index_queue directly.
