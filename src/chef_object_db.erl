@@ -26,7 +26,8 @@
 -export([add_to_solr/2,
          add_to_solr/4,
          delete/3,
-         delete_from_solr/1]).
+         delete_from_solr/1,
+         dbname/1]).
 
 -include_lib("chef_objects/include/chef_types.hrl").
 
@@ -39,7 +40,7 @@ add_to_solr(cookbook_version, _Id, _OrgId, _Ejson) ->
     %% we don't index cookbook_version objects
     ok;
 add_to_solr(TypeName, Id, OrgId, Ejson) ->
-    chef_index_queue:set(TypeName, Id, chef_otto:dbname(OrgId), Ejson).
+    chef_index_queue:set(TypeName, Id, dbname(OrgId), Ejson).
 
 -spec add_to_solr(chef_type() | #chef_user{}, ejson_term()) -> ok.
 add_to_solr(#chef_cookbook_version{}, _) ->
@@ -52,7 +53,7 @@ add_to_solr(ObjectRec, Ejson) ->
     {Id, OrgId} = get_id_and_org_id(ObjectRec),
     TypeName = chef_object:type_name(ObjectRec),
     EjsonToIndex = chef_object:ejson_for_indexing(ObjectRec, Ejson),
-    chef_index_queue:set(TypeName, Id, chef_otto:dbname(OrgId), EjsonToIndex).
+    chef_index_queue:set(TypeName, Id, dbname(OrgId), EjsonToIndex).
 
 %% @doc Helper function to easily delete an object from Solr, instead
 %% of calling chef_index_queue directly.
@@ -62,7 +63,7 @@ delete_from_solr(#chef_cookbook_version{}) ->
     ok;
 delete_from_solr(Object) ->
     {Id, OrgId} = get_id_and_org_id(Object),
-    chef_index_queue:delete(chef_object:type_name(Object), Id, chef_otto:dbname(OrgId)).
+    chef_index_queue:delete(chef_object:type_name(Object), Id, dbname(OrgId)).
 
 -spec get_id_and_org_id(chef_object()) -> {binary(), binary()}.
 %% @doc Return the `id' and `org_id' fields from a `chef_object()' record type as a tuple of
@@ -151,3 +152,13 @@ handle_delete_from_db({error, _}=Error) ->
     throw({delete_from_db, Error});
 handle_delete_from_db(_Result) ->
     ok.
+
+-ifdef(OC_CHEF).
+-spec dbname(binary()) -> <<_:40,_:_*8>>.
+dbname(OrgId) ->
+    <<"chef_", OrgId/binary>>.
+-else.
+-spec dbname(binary()) -> binary().
+dbname(OrgId) ->
+    OrgId.
+-endif.
