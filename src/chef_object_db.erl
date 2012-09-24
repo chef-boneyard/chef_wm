@@ -64,6 +64,24 @@ delete_from_solr(Object) ->
     {Id, OrgId} = get_id_and_org_id(Object),
     chef_index_queue:delete(chef_object:type_name(Object), Id, chef_otto:dbname(OrgId)).
 
+-spec get_id_and_org_id(chef_object()) -> {binary(), binary()}.
+%% @doc Return the `id' and `org_id' fields from a `chef_object()' record type as a tuple of
+%% `{Id, OrgId}'.
+get_id_and_org_id(#chef_node{id = Id, org_id = OrgId}) ->
+    {Id, OrgId};
+get_id_and_org_id(#chef_role{id = Id, org_id = OrgId}) ->
+    {Id, OrgId};
+get_id_and_org_id(#chef_environment{id = Id, org_id = OrgId}) ->
+    {Id, OrgId};
+get_id_and_org_id(#chef_client{id = Id, org_id = OrgId}) ->
+    {Id, OrgId};
+get_id_and_org_id(#chef_data_bag{id = Id, org_id = OrgId}) ->
+    {Id, OrgId};
+get_id_and_org_id(#chef_data_bag_item{id = Id, org_id = OrgId}) ->
+    {Id, OrgId};
+get_id_and_org_id(#chef_cookbook_version{id = Id, org_id = OrgId}) ->
+    {Id, OrgId}.
+
 %% @doc Deletes an object from the database and queues a delete of the object's data in the
 %% search index (Solr). Throws an error if the database delete operation fails. Crashing on
 %% db error and not performing the solr deletes is the right thing because: if the data is
@@ -133,21 +151,3 @@ handle_delete_from_db({error, _}=Error) ->
     throw({delete_from_db, Error});
 handle_delete_from_db(_Result) ->
     ok.
-
--spec get_id_and_org_id(chef_object()) -> {binary(), binary()}.
-%% @doc Return the `id' and `org_id' fields from a `chef_object()' record type as a tuple of
-%% `{Id, OrgId}'.
-get_id_and_org_id(#chef_node{id = Id, org_id = OrgId}) ->
-    {Id, OrgId};
-get_id_and_org_id(#chef_role{id = Id, org_id = OrgId}) ->
-    {Id, OrgId};
-get_id_and_org_id(#chef_environment{id = Id, org_id = OrgId}) ->
-    {Id, OrgId};
-get_id_and_org_id(#chef_client{id = Id, org_id = OrgId}) ->
-    {Id, OrgId};
-get_id_and_org_id(#chef_data_bag{id = Id, org_id = OrgId}) ->
-    {Id, OrgId};
-get_id_and_org_id(#chef_data_bag_item{id = Id, org_id = OrgId}) ->
-    {Id, OrgId};
-get_id_and_org_id(#chef_cookbook_version{id = Id, org_id = OrgId}) ->
-    {Id, OrgId}.
