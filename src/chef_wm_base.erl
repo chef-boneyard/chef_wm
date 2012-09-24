@@ -323,15 +323,13 @@ create_from_json(#wm_reqdata{} = Req,
     %% ObjectEjson should already be normalized. Record creation does minimal work and does
     %% not add or update any fields.
     ObjectRec = chef_object:new_record(RecType, OrgId, maybe_authz_id(AuthzId), ObjectEjson),
-    Id = chef_object:id(ObjectRec),
     Name = chef_object:name(ObjectRec),
     TypeName = chef_object:type_name(ObjectRec),
     %% We send the object data to solr for indexing *first*. If it fails, we'll error out on
     %% a 500 and client can retry. If we succeed and the db call fails or conflicts, we can
     %% safely send a delete to solr since this is a new object with a unique ID unknown to
     %% the world.
-    ok = chef_object_db:add_to_solr(TypeName, Id, OrgId,
-                                 chef_object:ejson_for_indexing(ObjectRec, ObjectEjson)),
+    ok = chef_object_db:add_to_solr(ObjectRec, ObjectEjson),
     CreateFun = chef_db:create_fun(ObjectRec),
     case chef_db:CreateFun(DbContext, ObjectRec, ActorId) of
         {conflict, _} ->
@@ -362,18 +360,13 @@ create_from_json(#wm_reqdata{} = Req,
 %% objects. `OrigObjectRec' should be the existing and unmodified `chef_object()'
 %% record. `ObjectEjson' is the parsed EJSON from the request body.
 update_from_json(#wm_reqdata{} = Req, #base_state{chef_db_context = DbContext,
-                                                  organization_guid = OrgId,
                                                   requestor_id = ActorId}=State,
                  OrigObjectRec, ObjectEjson) ->
     ObjectRec = chef_object:update_from_ejson(OrigObjectRec, ObjectEjson),
     %% Send object to solr for indexing *first*. If the update fails, we will have sent
     %% incorrect data, but that should get corrected when the client retries. This is a
     %% compromise.
-    ok = chef_object_db:add_to_solr(chef_object:type_name(ObjectRec),
-                                    chef_object:id(ObjectRec),
-                                    OrgId,
-                                    chef_object:ejson_for_indexing(ObjectRec, ObjectEjson)),
-
+    ok = chef_object_db:add_to_solr(ObjectRec, ObjectEjson),
     %% Ignore updates that don't change anything. If the user PUTs identical data, we skip
     %% going to the database and skip updating updated_at. This allows us to avoid RDBMS
     %% specific behavior around updates with unchanged data and race conditions around
