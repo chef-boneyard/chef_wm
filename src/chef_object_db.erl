@@ -42,7 +42,10 @@ add_to_solr(cookbook_version, _Id, _OrgId, _Ejson) ->
 add_to_solr(TypeName, Id, OrgId, Ejson) ->
     chef_index_queue:set(TypeName, Id, dbname(OrgId), Ejson).
 
--spec add_to_solr(chef_type() | #chef_user{}, ejson_term()) -> ok.
+%% -spec add_to_solr(chef_type() |
+%%                   #chef_user{} |
+%%                   #chef_cookbook_version{},
+%%                   _) -> ok.
 add_to_solr(#chef_cookbook_version{}, _) ->
     ok;
 add_to_solr(#chef_data_bag{}, _) ->
