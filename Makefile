@@ -12,7 +12,7 @@ DIALYZER_DEPS = deps/chef_authn/ebin \
                 deps/stats_hero/ebin \
                 deps/ibrowse/ebin \
                 deps/webmachine/ebin \
-                deps/ejson/ebin \
+                deps/jiffy/ebin \
                 deps/bcrypt/ebin \
                 deps/chef_certgen/ebin
 DEPS_PLT = chef_wm.plt
