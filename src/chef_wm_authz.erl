@@ -28,7 +28,8 @@
          allow_admin_or_requesting_node/2,
          allow_validator/1,
          is_admin/1,
-         is_validator/1]).
+         is_validator/1,
+         maybe_check_authz/2]).
 
 -include("chef_wm.hrl").
 
@@ -66,5 +67,18 @@ is_validator(#chef_client{validator = true}) ->
     true;
 is_validator(#chef_client{}) ->
     false.
+
+-spec maybe_check_authz(atom(),
+                        {object, object_id()} |
+                        {container, container_name()} | [auth_tuple()])
+    -> authorized | {object, object_id()} | {container, container_name()} | [auth_tuple()].
+
+maybe_check_authz(ConfigName, Auth) ->
+    case application:get_env(oc_chef_wm, ConfigName) of
+        {ok, true} ->
+            authorized;
+        _Else -> %% use standard behaviour
+            Auth
+    end.
 
 
