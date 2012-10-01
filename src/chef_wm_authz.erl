@@ -29,7 +29,7 @@
          allow_validator/1,
          is_admin/1,
          is_validator/1,
-         use_custom_acls/2]).
+         use_custom_acls/4]).
 
 -include("chef_wm.hrl").
 
@@ -70,17 +70,21 @@ is_validator(#chef_client{}) ->
 
 -spec use_custom_acls(Endpoint :: atom(),
                       Auth :: {object, object_id()} |
-                              {container, container_name()} | [auth_tuple()])
+                              {container, container_name()} | [auth_tuple()],
+                      Req :: wm:req(),
+                      State :: #base_state{})
     -> authorized | {object, object_id()} | {container, container_name()} | [auth_tuple()].
 %% Check if we should use custom acls for an endpoint. If the config variable is false,
 %% the we don't check the object/container ACLs and instead use the fact that a client has
 %% passed authn is enough
-use_custom_acls(Endpoint, Auth) ->
+use_custom_acls(_Endpoint, Auth, Req, #base_state{requestor = #chef_user{} } = State) ->
+    {Auth, Req, State};
+use_custom_acls(Endpoint, Auth, Req, #base_state{requestor = #chef_client{} } = State) ->
     case application:get_env(oc_chef_wm, config_for(Endpoint)) of
         {ok, false} ->
-            authorized;
+            {authorized, Req, State};
         _Else -> %% use standard behaviour
-            Auth
+            {Auth, Req, State}
     end.
 
 config_for(cookbooks) ->
