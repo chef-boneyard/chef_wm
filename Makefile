@@ -43,7 +43,18 @@ dialyzer: $(DEPS_PLT)
 $(DEPS_PLT):
 	@dialyzer --build_plt $(DIALYZER_DEPS) --output_plt $(DEPS_PLT)
 
+
 doc:
 	@rebar doc skip_deps=true
 
 .PHONY: doc test eunit distclean compile clean all dialyzer
+
+shell: compile
+# You often want *rebuilt* rebar tests to be available to the
+# # shell you have to call eunit (to get the tests
+# # rebuilt). However, eunit runs the tests, which probably
+# # fails (thats probably why You want them in the shell). This
+# # runs eunit but tells make to ignore the result.
+	- @rebar skip_deps=true eunit
+	@erl -pa $(CURDIR)/.eunit -pa $(CURDIR)/ebin -pa $(CURDIR)/*/ebin
+
