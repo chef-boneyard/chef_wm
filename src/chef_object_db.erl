@@ -32,8 +32,8 @@
 -spec add_to_solr(chef_type(), object_id(), object_id(), ejson_term()) -> ok.
 %% Add a Chef object to solr
 add_to_solr(TypeName, _Id, _OrgId, _Ejson) when TypeName =:= data_bag;
-                                              TypeName =:= user;
-                                              TypeName =:= coookbook_version ->
+                                                TypeName =:= user;
+                                                TypeName =:= coookbook_version ->
             ok; %%These types are not indexed
 add_to_solr(TypeName, Id, OrgId, Ejson) ->
     chef_index_queue:set(TypeName, Id, chef_otto:dbname(OrgId), Ejson).
