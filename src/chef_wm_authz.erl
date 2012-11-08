@@ -28,7 +28,6 @@
          all_but_validators/1,
          allow_admin/1,
          allow_admin_or_requesting_node/2,
-         allow_validator/1,
          is_admin/1,
          is_requesting_node/2,
          is_validator/1]).
@@ -68,12 +67,6 @@ allow_admin_or_requesting_node(#chef_user{username = Name}, Name) ->
 allow_admin_or_requesting_node(#chef_user{} = User, _Name) ->
     allow_admin(User).
 
--spec allow_validator(#chef_client{}) -> authorized | forbidden.
-allow_validator(#chef_client{validator = true}) ->
-    authorized;
-allow_validator(#chef_client{}) ->
-    forbidden.
-
 -spec is_admin(#chef_client{} | #chef_user{}) -> true | false.
 is_admin(#chef_client{admin = true}) ->
     true;
@@ -99,5 +92,3 @@ is_validator(#chef_client{validator = true}) ->
     true;
 is_validator(#chef_client{}) ->
     false.
-
-
