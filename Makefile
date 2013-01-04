@@ -43,3 +43,7 @@ dialyzer: $(DEPS_PLT)
 $(DEPS_PLT):
 	@dialyzer --build_plt $(DIALYZER_DEPS) --output_plt $(DEPS_PLT)
 
+doc:
+	@rebar doc skip_deps=true
+
+.PHONY: doc test eunit distclean compile clean all dialyzer
