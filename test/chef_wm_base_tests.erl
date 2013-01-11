@@ -32,7 +32,7 @@ stats_hero_label_test_() ->
                                      %% {Input, Expected}
                                      {{chef_sql, fetch_client}, <<"rdbms.chef_sql.fetch_client">>},
                                      {{chef_solr, some_fun}, <<"solr.chef_solr.some_fun">>},
-                                     {{chef_s3, delete_checksums}, <<"bookshelf.s3_amazonaws_com.test_bucket.chef_s3.delete_checksums">>}
+                                     {{chef_s3, delete_checksums}, <<"s3.s3_amazonaws_com.test_bucket.chef_s3.delete_checksums">>}
                                     ] ],
 
 
