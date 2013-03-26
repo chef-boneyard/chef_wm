@@ -109,6 +109,10 @@
           %% Set by chef_rest_wm:service_available.
           organization_name :: binary() | ?OSC_ORG_NAME,
 
+          %% Run time configurable dark launch info
+          %% Set by chef_rest_wm:service_available.
+          darklaunch = undefined :: tuple() | undefined, %% do not want to expose darklaunch record globally
+
           %% Batch size used to pull back large objects from couchdb.
           %% Currently used by the search resource to limit the number
           %% of nodes that are in memory at one time.
