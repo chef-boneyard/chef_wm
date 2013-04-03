@@ -23,9 +23,9 @@
 -export([is_enabled/2]).
 
 -ifndef(CHEF_WM_DARKLAUNCH).
-is_enabled(<<"add_type_and_bag_to_items">>, undefined) ->
+is_enabled(<<"add_type_and_bag_to_items">>, _) ->
     true;
-is_enabled(<<"couchdb_", _Rest/binary>>, undefined) ->
+is_enabled(<<"couchdb_", _Rest/binary>>, _) ->
     false;
 is_enabled(_, _) ->
     true.
