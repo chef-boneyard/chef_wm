@@ -31,6 +31,9 @@ is_enabled(_, _) ->
     true.
 
 -else.
+%% This is a relic, and we should take a moment and make this an environment based config item.
+is_enabled(<<"add_type_and_bag_to_items">>, _) ->
+    true;
 is_enabled(Feature, Darklaunch) ->
     ?CHEF_WM_DARKLAUNCH:is_enabled(Feature, Darklaunch).
 -endif.
