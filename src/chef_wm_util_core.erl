@@ -23,7 +23,8 @@
 -export([base_uri/1,
          set_json_body/2,
          set_uri_of_created_resource/1,
-         set_uri_of_created_resource/2
+         set_uri_of_created_resource/2,
+         not_found_message/2
         ]).
 
 %% @doc Returns the base URI for the server as called by the client as a string.
@@ -80,3 +81,13 @@ set_uri_of_created_resource(Uri, Req0) when is_binary(Uri) ->
     %% Uri needs to be a binary for encoding to JSON, but a string for the header value
     Req = set_json_body(Req0, {[{<<"uri">>, Uri}]}),
     wrq:set_resp_header("Location", binary_to_list(Uri), Req).
+
+not_found_message(TypeName, ObjName) ->
+    error_message_envelope(iolist_to_binary([TypeName, " '", ObjName, "' not found"])).
+
+error_message_envelope(Message) when is_binary(Message) orelse
+                                     is_tuple(Message) ->
+    %% Tuple guard is really intended for grabbing EJson-encoded json objects, but we don't
+    %% have guards for that.  It was added to accommodate depsolver messages.  This is part
+    %% of an ongoing refactor, and may not ultimately be necessary.
+    {[{<<"error">>, [Message]}]}.
