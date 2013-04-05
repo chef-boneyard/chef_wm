@@ -111,7 +111,9 @@
 
           %% Run time configurable dark launch info
           %% Set by chef_rest_wm:service_available.
-          darklaunch = undefined :: tuple() | undefined, %% do not want to expose darklaunch record globally
+          %% In open source chef this is left undefined
+          %% In OPC/OHC it will either contain dark launch info or no_header
+          darklaunch = undefined :: any(), %% do not want to expose darklaunch record globally
 
           %% Batch size used to pull back large objects from couchdb.
           %% Currently used by the search resource to limit the number
