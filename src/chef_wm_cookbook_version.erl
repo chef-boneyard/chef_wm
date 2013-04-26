@@ -226,7 +226,7 @@ parse_cookbook_version(_, UrlVersion) ->
   parse_cookbook_version(UrlVersion).
 
 parse_cookbook_version(UrlVersion) ->
-  try chef_cookbook:parse_version(UrlVersion) of
+  try chef_object:parse_version(UrlVersion) of
     {_Major, _Minor, _Patch} = Version ->
      Version
     catch
@@ -242,7 +242,7 @@ error_message(Msg) when is_binary(Msg) ->
 conflict_message(#chef_cookbook_version{name = Name,
                                         major = Major, minor = Minor, patch = Patch}) ->
     Msg = [<<"The cookbook ">>, Name, <<" at version ">>,
-           chef_cookbook:version_to_binary({Major, Minor, Patch}),
+           chef_object:version_to_binary({Major, Minor, Patch}),
            <<" is frozen. Use the 'force' option to override.">>],
     {[{<<"error">>, [iolist_to_binary(Msg)]}]}.
 
