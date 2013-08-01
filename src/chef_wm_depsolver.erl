@@ -304,7 +304,7 @@ invalid_constraints_message(ErrorDetails) ->
     ConstraintsNotMet = proplists:get_value(constraints_not_met, ErrorDetails),
     Msg1 = build_constraints_message(<<"">>, non_existent_cookbooks, NonExistentCBs),
     Msg2 = build_constraints_message(Msg1, constraints_not_met, ConstraintsNotMet),
-    Message = iolist_to_binary(["Run list contains invalid items: ", Msg2]),
+    Message = iolist_to_binary(["Run list contains invalid items: ", Msg2, "."]),
     {[{<<"message">>, Message},
       {<<"non_existent_cookbooks">>, NonExistentCBs},
       {<<"cookbooks_with_no_versions">>, ConstraintsNotMet}]}.
