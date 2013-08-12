@@ -231,6 +231,12 @@ handle_depsolver_results(ok, {error, resolution_timeout}, Req, State) ->
     precondition_failed(Req, State,
                         timeout_message(),
                         solve_timeout);
+handle_depsolver_results(ok, {error, no_depsolver_workers}, Req, State) ->
+    wm_halt(503,
+            Req,
+            State,
+            {[{<<"message">>,<<"Out of depednecy solvers. Try again later.">>}]},
+            no_depsolver_workers);
 handle_depsolver_results(ok, {error, invalid_constraints, Detail}, Req, State) ->
     precondition_failed(Req, State,
                         invalid_constraints_message(Detail),
