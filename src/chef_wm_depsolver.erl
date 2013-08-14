@@ -336,7 +336,7 @@ timeout_message() ->
 %% with the first solution
 %%
 unable_to_solve_message({error, [Why| _Rest]} = Details) ->
-    Reason = iolist_to_binary(depsolver:format_error(Details)),
+    Reason = iolist_to_binary(depsolver_gecode:format_error(Details)),
     { RawPaths, FailingDeps } = Why,
     unable_to_solve_message(Reason, RawPaths, FailingDeps).
 
