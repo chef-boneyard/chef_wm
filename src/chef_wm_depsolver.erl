@@ -97,11 +97,7 @@ forbidden_for_environment(#chef_environment{authz_id = EnvAuthzId} = Env, Req,
                          #base_state{resource_state = ResourceState} = State) ->
     %% Set this here before passing it out; downstream functions will need it
     State1 = State#base_state{resource_state = ResourceState#depsolver_state{chef_environment = Env}},
-    chef_wm_authz:use_custom_acls(depsolver,
-                                  [{container, cookbook, read},
-                                   {object, EnvAuthzId, read}],
-                                  Req,
-                                  State1).
+    {[{container, cookbook, read}, {object, EnvAuthzId, read}], Req, State1}.
 
 post_is_create(Req, State) ->
     {false, Req, State}.
@@ -230,20 +226,20 @@ handle_depsolver_results({not_found, CookbookNames}, _Deps, Req, State) when is_
 handle_depsolver_results(ok, {error, resolution_timeout}, Req, State) ->
     precondition_failed(Req, State,
                         timeout_message(),
-                        solve_timeout);
+                        {timeout, depsolver});
 handle_depsolver_results(ok, {error, no_depsolver_workers}, Req, State) ->
     wm_halt(503,
             Req,
             State,
-            {[{<<"message">>,<<"Out of depednecy solvers. Try again later.">>}]},
+            <<"Dependency solver overloaded. Try again later.">>,
             no_depsolver_workers);
-%% log the exception and return a bare 500
+%% log the exception and return a 500
 handle_depsolver_results(ok, {error, exception, Message, Backtrace}, Req, State) ->
     error_logger:error_report([{module, ?MODULE},
-                               {error_type, ruby_exception},
+                               {error_type, depsolver_ruby_exception},
                                {message, Message},
                                {backtrace, Backtrace}]),
-    {{halt, 500}, Req, State};
+    server_error(Req, State, <<"Dependency solver exception.">>, depsolver_ruby_exception);
 handle_depsolver_results(ok, {error, invalid_constraints, Detail}, Req, State) ->
     precondition_failed(Req, State,
                         invalid_constraints_message(Detail),
@@ -253,7 +249,7 @@ handle_depsolver_results(ok, {error, no_solution, Detail}, Req, State) ->
 handle_depsolver_results(ok, {error, {unreachable_package, Unreachable}}, Req, State) ->
     precondition_failed(Req, State,
                         not_reachable_message(Unreachable),
-                        not_reachable_dep);
+                        unreachable_dep);
 handle_depsolver_results(ok, {ok, Cookbooks}, Req, #base_state{chef_db_context = DbContext,
                                                                organization_name = OrgName} = State) ->
     %% TODO - helper function to deal with the call and match on a chef_cookbook version
@@ -299,7 +295,7 @@ assemble_response(Req, State, CookbookVersions) ->
             CBMapJson = chef_json:encode(JsonList),
             {true, wrq:append_to_response_body(CBMapJson, Req), State};
         {error, Msg} ->
-            forbid(Req, State, Msg, {read, forbidden});
+            forbid(Req, State, Msg, {forbidden, read});
         {timeout, Msg} ->
             server_error(Req, State, Msg, {timeout, cookbook_authz})
     end.
