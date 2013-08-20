@@ -335,19 +335,14 @@ timeout_message() ->
 %% The textual error message will show all solutions but we fill in the structures only
 %% with the first solution
 %%
-unable_to_solve_message({error, [Why| _Rest]} = Details) ->
+unable_to_solve_message({error, {no_solution, RawPaths, FailingDeps}} = Details) ->
     Reason = iolist_to_binary(depsolver_gecode:format_error(Details)),
-    { RawPaths, FailingDeps } = Why,
     unable_to_solve_message(Reason, RawPaths, FailingDeps).
 
 %% versions specified that do not exist, so output a "no versions match" error
-unable_to_solve_message(_Reason, RawPaths, []) ->
+unable_to_solve_message(Reason, RawPaths, []) ->
     RunlistItems = formatted_roots(RawPaths),
-    InvalidItemsReason = iolist_to_binary(["Run list contains invalid items: no versions match the constraints on cookbook ",
-                                           bin_str_join(RunlistItems, <<",">>),
-                                           "."
-                                          ]),
-    {[{<<"message">>, InvalidItemsReason},
+    {[{<<"message">>, Reason},
       {<<"non_existent_cookbooks">>, []},
       {<<"cookbooks_with_no_versions">>, RunlistItems}]};
 %% If constraint paths are non-empty, find the reason that the constraint is not satisfied
@@ -367,19 +362,15 @@ unable_to_solve_message(Reason, RawPaths, FailingDeps) ->
 -spec formatted_roots([{Root::[depsolver:constraint()],
                         Path::[depsolver:pkg()]}]) -> [binary()].
 formatted_roots(RawRoots) ->
-    %% A RootSet is a list of packages
-    Roots = [ RootSet || {RootSet, _} <- RawRoots],
     %% We flatten to turn [ [ Roots] ] into something we can iterate over
-    [ iolist_to_binary(depsolver_culprit:format_constraint(Ver)) || Ver <- lists:flatten(Roots) ].
+    [ iolist_to_binary(depsolver_culprit:format_constraint(Ver)) || Ver <- RawRoots ].
 
 %% @doc Give a set of constraint paths representing failing
 %% dependencies, extract out the constraints which could not be met
 -spec formatted_constraints(FailingDeps::[{Root::[depsolver:constraint()],
                                            Constraints::[depsolver:constraint()]}]) -> [binary()].
 formatted_constraints(FailingDeps) ->
-    ConstraintSets = [ ConstraintSet || {_Root, ConstraintSet} <- FailingDeps ],
-    %% Each ConstraintSet is a list so we flatten to turn [ [ Constraint] ] into something we can iterate over
-    [iolist_to_binary(depsolver_culprit:format_constraint(Con)) || Con <- lists:flatten(ConstraintSets)].
+    iolist_to_binary([depsolver_culprit:format_constraint(Con) || Con <- FailingDeps]).
 
 %%------------------------------------------------------------------------------
 %% Miscellaneous Utilities
