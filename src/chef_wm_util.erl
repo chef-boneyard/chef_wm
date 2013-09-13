@@ -69,6 +69,32 @@ vhost(Req) ->
         undefined -> fqdn_with_port(Req)
     end.
 
+%% @doc checks host against a whitelist.
+%% Throw an error if it fails
+validate_host_or_throw_error(Host) ->
+    Whitelist = case application:get_env(chef_wm, host_header_whitelist) of
+        undefined -> throw({error, invalid_host});
+        {ok, ValidWhiteList} when is_list(ValidWhiteList) ->
+            ValidWhiteList;
+        {ok, Bad} ->
+            throw({invalid_whitelist, Bad})
+    end,
+
+    case validate_host_against_whitelist(Host, WhiteList) of
+        true -> something;
+        false -> something
+    end.
+
+validate_host_against_whitelist(Host, []) ->
+    false;
+validate_host_against_whitelist(Host, [ValidHost | Whitelist]) ->
+    case ValidHost of
+        Host -> true;
+        _    -> validate_host_against_whitelist(Host, Whitelist)
+    end.
+
+
+
 %% @doc Returns the host via webmachine
 fqdn_with_port(Req) ->
     string:join(wrq:host_tokens(Req), ".") ++ port_string(wrq:port(Req)).
