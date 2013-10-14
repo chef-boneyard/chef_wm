@@ -106,5 +106,4 @@ malformed_request_message(Any, _Req, _State) ->
 
 -spec conflict_message(binary()) -> ejson_term().
 conflict_message(_Name) ->
-    %% {[{<<"error">>, [<<"Data Bag '", Name/binary, "' already exists">>]}]}.
     {[{<<"error">>, [<<"Data bag already exists">>]}]}.
