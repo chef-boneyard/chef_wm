@@ -527,17 +527,24 @@ maybe_annotate_log_msg(Req, #base_state{log_msg = Msg}) ->
 
 %% If request results in a rename, then set Location header and wm will return with a 201.
 %% Currently, only the clients endpoint supports rename
-handle_rename(#chef_client{name = ObjectName}, Req) ->
-    ReqName = chef_wm_util:object_name(client, Req),
-    case ObjectName of
-        ReqName ->
-            Req;
-        _ ->
-            Uri = ?BASE_ROUTES:route(client, Req, [{name, ObjectName}]),
-            wrq:set_resp_header("Location", binary_to_list(Uri), Req)
-    end;
-handle_rename(_, Req) ->
-    Req.
+handle_rename(ObjectRec, Req) ->
+    case chef_object:rename_supported(ObjectRec) of
+        false -> Req;
+        true ->
+            TypeName = chef_object:type_name(ObjectRec),
+            %% transform type -> type_name
+            NameKey = list_to_atom(lists:flatten([atom_to_list(TypeName),
+                                                  "_name"])),
+            ReqName = chef_wm_util:extract_from_path(NameKey, Req),
+            ObjectName = chef_object:name(ObjectRec),
+            case ObjectName of
+                ReqName -> %% match: no rename needed
+                    Req;
+                _ ->
+                    Uri = ?BASE_ROUTES:route(TypeName, Req, [{name, ObjectName}]),
+                    wrq:set_resp_header("Location", binary_to_list(Uri), Req)
+            end
+    end.
 
 %%% @doc Return appropriate public key based on request source
 %%%
