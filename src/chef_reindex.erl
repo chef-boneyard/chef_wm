@@ -34,6 +34,7 @@
          ez_reindex_by_id/3,
          ez_reindex_by_name/3,
          ez_reindex_from_file/1,
+         ez_reindex_from_file/2,
          make_context/0,
          reindex/2,
          reindex_by_id/4,
@@ -195,6 +196,11 @@ make_context() ->
 %% enormous input files.
 %%
 ez_reindex_from_file(File) ->
+    ez_reindex_from_file(File, org_name).
+
+%% @doc Same as {@link ez_reindex_from_file/1} but allows you to control whether the first
+%% column in the text file is interpreted as an org name or an org id.
+ez_reindex_from_file(File, OrgIdType) ->
     {ok, Bin} = file:read_file(File),
     Lines = re:split(Bin, <<"\n">>),
     LinesWithNum = lists:zip(Lines, lists:seq(1, length(Lines))),
@@ -204,7 +210,7 @@ ez_reindex_from_file(File) ->
       fun(OrgName, IndexDict) ->
               error_logger:info_msg("processing org: ~s~n", [OrgName]),
               Ctx = make_context(),
-              OrgId = chef_db:fetch_org_id(Ctx, OrgName),
+              OrgId = resolve_org_id(Ctx, OrgName, OrgIdType),
               OrgInfo = {OrgId, OrgName},
               dict:map(
                 fun(RealIndex, Ids) ->
@@ -214,6 +220,11 @@ ez_reindex_from_file(File) ->
               error_logger:info_msg("completed org: ~s~n", [OrgName])
       end, OrgDict),
     ok.
+
+resolve_org_id(Ctx, OrgName, org_name) ->
+    chef_db:fetch_org_id(Ctx, OrgName);
+resolve_org_id(_Ctx, OrgId, org_id) ->
+    OrgId.
 
 parse_lines(LinesWithNum) ->
     OrgDict = lists:foldl(
