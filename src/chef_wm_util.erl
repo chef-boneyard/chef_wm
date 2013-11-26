@@ -52,10 +52,19 @@ base_mods() ->
 
 %% @doc Returns the base URI for the server as called by the client as a string.
 base_uri(Req) ->
-    Scheme = scheme(Req),
-    Host = string:join(wrq:host_tokens(Req), "."),
-    PortString = port_string(wrq:port(Req)),
-    Scheme ++ "://" ++ Host ++ PortString.
+    scheme(Req) ++ "://" ++ vhost(Req).
+
+%% @doc Returns the host from the request headers, or use the webmachine default
+vhost(Req) ->
+    case wrq:get_req_header("host", Req) of
+        B when is_binary(B) -> binary_to_list(B);
+        S when is_list(S) -> S;
+        undefined -> fqdn_with_port(Req)
+    end.
+
+%% @doc Returns the host via webmachine
+fqdn_with_port(Req) ->
+    string:join(wrq:host_tokens(Req), ".") ++ port_string(wrq:port(Req)).
 
 get_header_fun(Req, State = #base_state{header_fun = HFun})
   when HFun =:= undefined ->
