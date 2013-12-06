@@ -12,8 +12,8 @@ DIALYZER_DEPS = deps/chef_authn/ebin \
                 deps/ibrowse/ebin \
                 deps/webmachine/ebin \
                 deps/jiffy/ebin \
-                deps/bcrypt/ebin \
-                deps/chef_certgen/ebin
+                deps/bcrypt/ebin
+
 DEPS_PLT = chef_wm.plt
 
 all: compile eunit dialyzer
