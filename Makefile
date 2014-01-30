@@ -2,6 +2,7 @@ DEPS = $(CURDIR)/deps
 DIALYZER_DEPS = deps/chef_authn/ebin \
                 deps/chef_db/ebin \
                 deps/chef_index/ebin \
+                deps/chef_reindex/ebin \
                 deps/chef_objects/ebin \
                 deps/ej/ebin \
                 deps/fast_log/ebin \
