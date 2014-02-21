@@ -1,0 +1,26 @@
+%% -*- mode: erlang -*-
+%% -*- tab-width: 4;erlang-indent-level: 4;indent-tabs-mode: nil -*-
+%% ex: ts=4 sw=4 ft=erlang et
+
+{chef_wm_rebar_script_version, 1}.
+
+Dedup = fun(List) ->
+     WithIndex = lists:zip(List, lists:seq(1, length(List))),
+     UWithIndex = lists:ukeysort(1, WithIndex),
+     Ans0 = lists:keysort(2, UWithIndex),
+     [ V || {V, _} <- Ans0 ]
+end.
+
+MergeErlOpts = fun(Val) ->
+     {ok, FileConsult} = file:consult(Val),
+     Result = Dedup(proplists:get_value(erl_opts, CONFIG, [])
+            ++ proplists:get_value(erl_opts, FileConsult, [])),
+     lists:keystore(erl_opts, 1, CONFIG, {erl_opts, Result})
+end.
+
+case os:getenv("REBAR_PARENT") of
+     false ->
+         CONFIG;
+     Val ->
+         MergeErlOpts(Val)
+end.
