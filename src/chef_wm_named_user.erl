@@ -90,7 +90,7 @@ auth_info(Req, #base_state{chef_db_context = DbContext,
             {{object, AuthzId}, Req, State1}
     end.
 
-from_json(Req, #base_state{reqid = RequestId,
+from_json(Req, #base_state{
         resource_state = #user_state{
             chef_user = User,
             user_data = UserData}} = State) ->
@@ -101,8 +101,12 @@ from_json(Req, #base_state{reqid = RequestId,
             chef_user:password_data(User)
     end,
     UserDataWithoutPassword = ej:delete({<<"password">>}, UserData),
-    UserDataWithKeys = maybe_generate_key_pair(UserDataWithoutPassword, RequestId),
-    update_from_json(Req, State, User, {UserDataWithKeys, PasswordData}).
+    case chef_wm_util:maybe_generate_key_pair(UserDataWithoutPassword) of
+        keygen_timeout ->
+            {{halt, 503}, Req, State#base_state{log_msg = keygen_timeout}};
+        UserDataWithKeys ->
+            update_from_json(Req, State, User, {UserDataWithKeys, PasswordData})
+    end.
 
 to_json(Req, #base_state{resource_state =
                              #user_state{chef_user = User},
@@ -121,21 +125,6 @@ delete_resource(Req, #base_state{chef_db_context = DbContext,
     EJson = chef_user:assemble_user_ejson(User, OrgName),
     Req1 = chef_wm_util:set_json_body(Req, EJson),
     {true, Req1, State}.
-
-%% If the request contains "private_key":true, then we will generate a new key pair. In
-%% this case, we'll add the new public and private keys into the EJSON since
-%% update_from_json will use it to set the response.
-maybe_generate_key_pair(UserData, RequestId) ->
-    Name = ej:get({<<"name">>}, UserData),
-    case ej:get({<<"private_key">>}, UserData) of
-        true ->
-            {PublicKey, PrivateKey} = chef_wm_util:generate_keypair(Name, RequestId),
-            chef_object_base:set_key_pair(UserData,
-                                   {public_key, PublicKey},
-                                   {private_key, PrivateKey});
-        _ ->
-            UserData
-    end.
 
 % TODO: this could stand refactoring: I'm sure there is stuff re-used by other
 % endpoints and possibly unused code here
