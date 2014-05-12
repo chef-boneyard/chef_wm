@@ -61,7 +61,7 @@
 %% -callback auth_info(#wm_reqdata{}, any()) -> {not_found | binary(), #wm_reqdata{}, any()}.
 
 %% This is the max size allowed for incoming request bodies.
--define(MAX_SIZE, 1000000).
+-define(MAX_SIZE, 10000000).
 
 -include("chef_wm.hrl").
 -include_lib("eunit/include/eunit.hrl").
