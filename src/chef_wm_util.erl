@@ -98,10 +98,16 @@ fetch_org_guid(#base_state{organization_guid = Id}) when is_binary(Id) ->
     Id;
 fetch_org_guid(#base_state{organization_guid = undefined,
                            organization_name = OrgName,
-                           chef_db_context = DbContext}) ->
-    case chef_db:fetch_org_id(DbContext, OrgName) of
-        not_found -> throw({org_not_found, OrgName});
-        Guid -> Guid
+                           chef_db_context = DbContext,
+                           darklaunch = Darklaunch}) ->
+    case xdarklaunch_req:is_enabled(<<"couchdb_associations">>, Darklaunch) of
+        true ->
+            case chef_db:fetch_org_id(DbContext, OrgName) of
+                not_found -> throw({org_not_found, OrgName});
+                Guid -> Guid
+            end;
+        false ->
+            mark_db:fetch_sql_org_id(ToPass)
     end.
 
 -spec environment_not_found_message( bin_or_string() ) -> ejson().
