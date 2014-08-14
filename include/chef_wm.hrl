@@ -110,9 +110,8 @@
 
           %% Run time configurable dark launch info
           %% Set by chef_rest_wm:service_available.
-          %% In open source chef this is left undefined
-          %% In OPC/OHC it will either contain dark launch info or no_header
-          darklaunch = undefined :: any(), %% do not want to expose darklaunch record globally
+          %% It will either contain dark launch info or no_header
+          darklaunch :: any(),
 
           %% Opaque db connection context record as returned by
           %% chef_db:make_context.  Allows db layer access to request
