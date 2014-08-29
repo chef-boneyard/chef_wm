@@ -151,6 +151,7 @@ default_resource_init() ->
 
     Defaults = [{auth_skew, envy:get(chef_wm, auth_skew, positive_integer)},
                 {reqid_header_name, envy:get(chef_wm, reqid_header_name, string)},
+                {superuser_bypasses_checks, envy:get(chef_wm, superuser_bypasses_checks, bool)}
 
                 %% These will be used to generate the X-Ops-API-Info header
                 {otp_info, {ServerName, ServerVersion}},
