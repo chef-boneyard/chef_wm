@@ -1,3 +1,7 @@
+# Deprecated #
+
+This code has been merged into oc_chef_wm, which was in turn merged into [the apps folder of oc_erchef](https://github.com/opscode/oc_erchef/tree/master/apps/oc_chef_wm). New development should occur there.
+
 # Chef WM #
 
 This is the webmachine layer for chef.
